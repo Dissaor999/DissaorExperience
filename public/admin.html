@@ -670,7 +670,7 @@
 
     <script>
         // Sesión
-        const token = sessionStorage.getItem('admin_token');
+        let token = sessionStorage.getItem('admin_token');
         const userJson = sessionStorage.getItem('admin_user');
         if (!token && !document.cookie.includes('session_token')) {
             alert('Acceso restringido. Por favor autentíquese en la terminal con: login [usuario]');
@@ -718,11 +718,41 @@
 
         // API Helpers
         function authFetch(url, options = {}) {
+            options = options || {};
             options.headers = options.headers || {};
-            if (token) {
-                options.headers['Authorization'] = `Bearer ${token}`;
+            const curToken = sessionStorage.getItem('admin_token') || token;
+            if (curToken) {
+                options.headers['Authorization'] = `Bearer ${curToken}`;
             }
+            options.credentials = 'same-origin';
             return fetch(url, options);
+        }
+
+        async function checkSession() {
+            try {
+                const res = await authFetch('/api/session');
+                if (!res.ok) {
+                    alert('Acceso restringido. Por favor autentíquese con credenciales de administrador en la terminal: login admin');
+                    window.location.href = '/';
+                    return false;
+                }
+                const data = await res.json();
+                if (!data.authenticated || !data.user || (data.user.role !== 'admin' && data.user.role !== 'superadmin')) {
+                    alert('ACCESO DENEGADO: El operador actual (' + (data.user ? data.user.username : 'sin rol admin') + ') no tiene permisos de administrador.\nPor favor ingrese con la cuenta de administrador.');
+                    window.location.href = '/';
+                    return false;
+                }
+                document.getElementById('user-display').innerText = `Operador: ${data.user.username}`;
+                if (data.user.token) {
+                    token = data.user.token;
+                    sessionStorage.setItem('admin_token', data.user.token);
+                }
+                sessionStorage.setItem('admin_user', JSON.stringify(data.user));
+                return true;
+            } catch (err) {
+                console.error('Error al verificar sesión:', err);
+                return true;
+            }
         }
 
         // ==========================================
@@ -733,8 +763,22 @@
         async function loadCases() {
             try {
                 const res = await authFetch('/api/admin/cases');
-                if (res.status === 401) return window.location.href = '/';
-                casesList = await res.json();
+                if (res.status === 401 || res.status === 403) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.error || 'Acceso no autorizado al panel administrativo. Inicie sesión como administrador.');
+                    window.location.href = '/';
+                    return;
+                }
+                if (!res.ok) {
+                    showToast('Error al obtener lista de casos del servidor', true);
+                    return;
+                }
+                const data = await res.json();
+                if (!Array.isArray(data)) {
+                    console.error('Respuesta inesperada al cargar casos:', data);
+                    return;
+                }
+                casesList = data;
 
                 // Actualizar select de comandos
                 const cmdSelect = document.getElementById('cmd-case-select');
@@ -768,6 +812,8 @@
                 // Cargar comandos del caso seleccionado
                 if (cmdSelect.value) {
                     loadCommands(cmdSelect.value);
+                } else if (casesList.length > 0) {
+                    loadCommands(casesList[0].id);
                 }
             } catch (err) {
                 console.error(err);
@@ -868,8 +914,18 @@
 
         async function loadCommands(caseId) {
             try {
+                if (!caseId) return;
                 const res = await authFetch(`/api/admin/commands?case_id=${caseId}`);
-                commandsList = await res.json();
+                if (!res.ok) {
+                    console.error('Error al cargar comandos:', res.status);
+                    return;
+                }
+                const data = await res.json();
+                if (!Array.isArray(data)) {
+                    console.error('Respuesta inesperada al cargar comandos:', data);
+                    return;
+                }
+                commandsList = data;
                 const tbody = document.getElementById('tbody-commands');
                 tbody.innerHTML = '';
 
@@ -1297,7 +1353,10 @@
         async function loadUsers() {
             try {
                 const res = await authFetch('/api/admin/users');
-                usersList = await res.json();
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!Array.isArray(data)) return;
+                usersList = data;
                 const tbody = document.getElementById('tbody-users');
                 tbody.innerHTML = '';
 
@@ -1569,12 +1628,6 @@
                 }
             }
         });
-                } else {
-                    const d = await res.json();
-                    showToast(d.error || 'Error al eliminar', true);
-                }
-            }
-        });
 
         // ==========================================
         // BACKUP Y RESTORE
@@ -1618,8 +1671,13 @@
         });
 
         // Inicializar
-        loadCases();
-        loadUsers();
+        (async () => {
+            const ok = await checkSession();
+            if (ok) {
+                await loadCases();
+                await loadUsers();
+            }
+        })();
     </script>
 </body>
 
