@@ -320,6 +320,39 @@
             letter-spacing: 0.5px;
         }
 
+        /* Botones laterales sobre la foto */
+        .album-side-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(4, 15, 4, 0.75);
+            color: var(--term-green);
+            border: 1px solid rgba(4, 209, 31, 0.4);
+            font-size: 20px;
+            padding: 8px 12px;
+            cursor: pointer;
+            z-index: 15;
+            transition: all 0.2s;
+            font-family: monospace;
+            line-height: 1;
+            opacity: 0.75;
+        }
+
+        .album-side-btn:hover {
+            opacity: 1;
+            background: var(--term-green);
+            color: #000;
+            box-shadow: 0 0 10px rgba(4, 209, 31, 0.6);
+        }
+
+        .album-side-prev {
+            left: 8px;
+        }
+
+        .album-side-next {
+            right: 8px;
+        }
+
         /* Barra de Controles del Álbum */
         .album-controls-bar {
             display: flex;
@@ -1132,11 +1165,15 @@
                     <div class="album-image-wrapper">
                         <img class="album-active-img" src="${photos[currentIndex].url}" alt="Evidencia" draggable="false">
                         <div class="album-shield" title="Haga clic para ver a pantalla completa"></div>
+                        <button class="album-side-btn album-side-prev" title="Foto anterior">❮</button>
+                        <button class="album-side-btn album-side-next" title="Foto siguiente">❯</button>
                         <div class="album-watermark">CONFIDENCIAL // REGISTRO FORENSE - DESCARGA RESTRINGIDA</div>
                     </div>
 
                     <div class="album-controls-bar">
+                        <button class="btn-album-nav btn-prev" title="Foto anterior">&lt; ANTERIOR</button>
                         <div class="album-counter">FOTO <span class="counter-cur">1</span> DE <span class="counter-tot">${photos.length}</span></div>
+                        <button class="btn-album-nav btn-next" title="Foto siguiente">SIGUIENTE &gt;</button>
                     </div>
                     <div class="album-photo-caption"><b>${photos[currentIndex].title}</b>${photos[currentIndex].caption ? ': ' + photos[currentIndex].caption : ''}</div>
                 </div>
@@ -1152,6 +1189,32 @@
             const counterTot = container.querySelector('.counter-tot');
             const thumbsStrip = container.querySelector('.album-thumbnails-strip');
             const btnFullscreen = container.querySelector('.btn-trigger-fullscreen');
+            const btnPrev = container.querySelector('.btn-prev');
+            const btnNext = container.querySelector('.btn-next');
+            const btnSidePrev = container.querySelector('.album-side-prev');
+            const btnSideNext = container.querySelector('.album-side-next');
+
+            const goPrev = (e) => {
+                if (e) e.stopPropagation();
+                setPhoto(currentIndex - 1);
+            };
+
+            const goNext = (e) => {
+                if (e) e.stopPropagation();
+                setPhoto(currentIndex + 1);
+            };
+
+            btnPrev.addEventListener('click', goPrev);
+            btnNext.addEventListener('click', goNext);
+            btnSidePrev.addEventListener('click', goPrev);
+            btnSideNext.addEventListener('click', goNext);
+
+            if (photos.length <= 1) {
+                btnPrev.disabled = true;
+                btnNext.disabled = true;
+                btnSidePrev.style.display = 'none';
+                btnSideNext.style.display = 'none';
+            }
 
             function renderThumbnails() {
                 thumbsStrip.innerHTML = '';
@@ -1181,8 +1244,14 @@
                 // Actualizar miniaturas
                 const thumbs = thumbsStrip.querySelectorAll('.album-thumb-item');
                 thumbs.forEach((t, i) => {
-                    if (i === currentIndex) t.classList.add('active');
-                    else t.classList.remove('active');
+                    if (i === currentIndex) {
+                        t.classList.add('active');
+                        try {
+                            t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                        } catch (e) {}
+                    } else {
+                        t.classList.remove('active');
+                    }
                 });
             }
 
