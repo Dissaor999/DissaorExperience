@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONSOLA DE ADMINISTRACIÓN FORENSE</title>
+    <style>
+        :root {
+            --term-green: #04d11f;
+            --term-dim: #326930;
+            --term-alert: #ff3333;
+            --term-bg: #091207;
+            --term-card-bg: #0d1b0b;
+            --term-border: #1d3e1a;
+            --term-text: #c8e0c7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--term-bg);
+            color: var(--term-text);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--term-green);
+            padding-bottom: 12px;
+            margin-bottom: 25px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--term-green);
+            letter-spacing: 1px;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        a.nav-link, button.nav-btn {
+            background: #11240e;
+            color: var(--term-green);
+            border: 1px solid var(--term-dim);
+            padding: 6px 14px;
+            text-decoration: none;
+            font-family: inherit;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        a.nav-link:hover, button.nav-btn:hover {
+            background: var(--term-green);
+            color: #000;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--term-border);
+            padding-bottom: 5px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: #6a9b67;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            color: var(--term-green);
+            border-bottom: 2px solid var(--term-green);
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Tarjetas y Paneles */
+        .card {
+            background: var(--term-card-bg);
+            border: 1px solid var(--term-border);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--term-green);
+            font-size: 17px;
+            border-bottom: 1px dashed var(--term-dim);
+            padding-bottom: 8px;
+        }
+
+        /* Formularios */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #8bbd88;
+            font-size: 13px;
+        }
+
+        input[type="text"], input[type="password"], input[type="number"], select, textarea {
+            width: 100%;
+            background: #060c05;
+            border: 1px solid var(--term-dim);
+            color: #e0ffe0;
+            padding: 9px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--term-green);
+            box-shadow: 0 0 8px rgba(4, 209, 31, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 85px;
+        }
+
+        .btn-action {
+            background: #142a12;
+            color: var(--term-green);
+            border: 1px solid var(--term-green);
+            padding: 9px 18px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-action:hover {
+            background: var(--term-green);
+            color: #000;
+        }
+
+        .btn-danger {
+            background: #380d0d;
+            color: #ff6666;
+            border-color: #772222;
+        }
+
+        .btn-danger:hover {
+            background: #ff3333;
+            color: #000;
+        }
+
+        /* Tablas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        th, td {
+            border: 1px solid var(--term-border);
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #10210e;
+            color: var(--term-green);
+        }
+
+        tr:hover {
+            background: #11260e;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 7px;
+            font-size: 11px;
+            border: 1px solid currentColor;
+            border-radius: 2px;
+        }
+
+        .badge-active { color: #04d11f; border-color: #04d11f; }
+        .badge-inactive { color: #888; border-color: #555; }
+        .badge-type { color: #72c2ff; border-color: #2e6b9c; }
+
+        /* Notificaciones flotantes */
+        #toast {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #091a08;
+            color: var(--term-green);
+            border: 1px solid var(--term-green);
+            padding: 12px 20px;
+            display: none;
+            box-shadow: 0 0 15px rgba(4, 209, 31, 0.4);
+            z-index: 10000;
+        }
+
+        /* File upload drop area */
+        .drop-area {
+            border: 2px dashed var(--term-dim);
+            padding: 20px;
+            text-align: center;
+            background: #050b04;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .drop-area:hover {
+            border-color: var(--term-green);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="header-title">⚡ SISTEMA FORENSE // PANEL DE CONTROL ADMINISTRATIVO</div>
+        <div class="header-nav">
+            <span id="user-display" style="color:var(--term-green);">Operador: admin</span>
+            <a href="/" class="nav-link" target="_blank">💻 Abrir Terminal</a>
+            <button class="nav-btn btn-danger" id="btn-logout">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-commands">Comandos del Caso</button>
+        <button class="tab-btn" data-tab="tab-cases">Expedientes / Historias</button>
+        <button class="tab-btn" data-tab="tab-media">Imágenes & Google Docs</button>
+        <button class="tab-btn" data-tab="tab-users">Operadores / Usuarios</button>
+        <button class="tab-btn" data-tab="tab-backup">Copia de Seguridad</button>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 1: COMANDOS DEL CASO                      -->
+    <!-- ============================================== -->
+    <div id="tab-commands" class="tab-content active">
+        <div class="card">
+            <h2>Configuración de Comandos Interactivos</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+                <div>
+                    <label style="display:inline; margin-right:10px;">Expediente:</label>
+                    <select id="cmd-case-select" style="width: auto; display: inline-block; min-width: 260px;"></select>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <label class="btn-action" style="display:inline-flex; align-items:center; cursor:pointer; font-size:13px; margin:0;">
+                        📥 Importar JSON de Comandos
+                        <input type="file" id="file-import-cmds" accept=".json" style="display:none;">
+                    </label>
+                    <button class="nav-btn" id="btn-export-cmds">📤 Exportar Comandos JSON</button>
+                    <button class="btn-action" id="btn-new-cmd">+ Nuevo Comando</button>
+                </div>
+            </div>
+
+            <!-- Modal de Importación de Comandos -->
+            <div id="modal-import-cmds" style="display:none; background:#060f05; border:1px solid var(--term-green); padding:15px; margin-bottom:20px;">
+                <h3 style="margin-top:0; color:var(--term-green);">📥 Importar Lista de Comandos JSON al Expediente</h3>
+                <p style="font-size:13px; color:#aaa;" id="import-cmds-info">Archivo seleccionado listo para importar.</p>
+                <div style="margin-bottom:12px;">
+                    <label style="display:inline-flex; align-items:center; cursor:pointer;">
+                        <input type="checkbox" id="chk-replace-cmds" style="width:auto; margin-right:8px;">
+                        <span><b>Reemplazar todos los comandos existentes</b> de este expediente (si no se marca, se añadirán a los existentes)</span>
+                    </label>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button class="btn-action btn-danger" id="btn-cancel-import-cmds">Cancelar</button>
+                    <button class="btn-action" id="btn-confirm-import-cmds">Procesar e Importar Comandos</button>
+                </div>
+            </div>
+
+            <!-- Formulario de Nuevo / Editar Comando -->
+            <div id="cmd-form-card" style="display:none; background:#060f05; border:1px solid var(--term-green); padding:15px; margin-bottom:20px;">
+                <h3 id="cmd-form-title" style="margin-top:0; color:var(--term-green);">Crear Nuevo Comando</h3>
+                <input type="hidden" id="edit-cmd-id">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Comando o Patrón Escrito por el Usuario (ej: 'abrir ted.jpeg', 'ls', 'exif foto'):</label>
+                        <input type="text" id="cmd-pattern" placeholder="ej: leer diario_secreto.txt" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo de Respuesta:</label>
+                        <select id="cmd-type">
+                            <option value="text">Texto Inmediato (Pistas, mensajes, diálogos)</option>
+                            <option value="decrypt_text">Texto con Efecto Desencriptado [████░░]</option>
+                            <option value="image">Imagen de Evidencia (Protegida contra descarga)</option>
+                            <option value="doc_embed">Marco de Álbum (Google Photos Picker API & Anti-Descarga)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fase Requerida (0 = Todas, 1 = Inicial, 2 = Paranoia/Degradación):</label>
+                        <input type="number" id="cmd-required-phase" value="0" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Siguiente Fase (0 = Mantener, 2 = Activar degradación, etc.):</label>
+                        <input type="number" id="cmd-next-phase" value="0" min="0">
+                    </div>
+
+                    <!-- Campos dinámicos según tipo de respuesta -->
+                    <div class="form-group full" id="group-text-payload">
+                        <label>Contenido del Texto (Soporta HTML básico como &lt;br&gt;, &lt;b&gt;):</label>
+                        <textarea id="cmd-payload-text" placeholder="Escriba la respuesta de la terminal..."></textarea>
+                        <label style="display:inline-flex; align-items:center; margin-top:5px; cursor:pointer;">
+                            <input type="checkbox" id="cmd-payload-alert" style="width:auto; margin-right:8px;">
+                            <span>Marcar como alerta roja (terror / paranoia)</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group full" id="group-image-payload" style="display:none;">
+                        <label>URL de la Imagen (ej: /ted.jpeg, subida en pestaña de Imágenes o enlace externo):</label>
+                        <input type="text" id="cmd-payload-img-url" placeholder="ej: /ted.jpeg">
+                        <label style="margin-top:10px;">Pie de foto / Leyenda forense:</label>
+                        <input type="text" id="cmd-payload-img-caption" placeholder="ej: Fotografía analógica recuperada de la escena">
+                        <label style="margin-top:10px;">Retraso de descifrado (milisegundos):</label>
+                        <input type="number" id="cmd-payload-img-delay" value="2500" step="500">
+                    </div>
+
+                    <div class="form-group full" id="group-doc-payload" style="display:none;">
+                        <label style="color:#8be9fd; font-weight:bold;">URL del Álbum de Google Fotos (o Enlace Público):</label>
+                        <div style="display:flex; gap:10px; align-items:center; margin-top:4px;">
+                            <input type="text" id="cmd-payload-doc-url" placeholder="https://photos.app.goo.gl/... o https://photos.google.com/share/..." style="flex:1;">
+                            <button type="button" class="btn-action" id="btn-sync-album" style="white-space:nowrap; background:#1b3d18; border-color:#50fa7b; color:#50fa7b;">⚡ Sincronizar Fotos</button>
+                        </div>
+                        <div id="sync-album-status" style="font-size:12px; margin-top:6px; color:#7ca579;">
+                            💡 <b>Automático:</b> Basta con colocar la URL compartida de Google Fotos aquí. El sistema extraerá y blindará todas las fotos para que los operadores las vean a pantalla completa sin poder descargarlas.
+                        </div>
+
+                        <label style="margin-top:12px; color:#8be9fd;">Título del Álbum / Expediente:</label>
+                        <input type="text" id="cmd-payload-doc-title" placeholder="ej: Evidencia de Callejeando">
+                        
+                        <label style="margin-top:10px;">Descripción o Nota Pericial del Álbum:</label>
+                        <input type="text" id="cmd-payload-doc-caption" placeholder="ej: Registro desclasificado bajo protocolo forense protegido.">
+
+                        <details style="margin-top:14px; background:rgba(0,0,0,0.3); border:1px solid #1a3818; padding:8px 12px; border-radius:4px;">
+                            <summary style="cursor:pointer; color:#ffb86c; font-size:13px; font-weight:bold;">⚙️ Fotos individuales (Opcional si usas la URL del álbum arriba)</summary>
+                            <label style="margin-top:8px; display:block; font-size:12px; color:#8bbd88;">URLs directas (una por línea):</label>
+                            <textarea id="cmd-payload-doc-photos" placeholder="/ted.jpeg&#10;https://..." style="min-height:75px; font-family:monospace; font-size:12px;"></textarea>
+                        </details>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+                    <button class="btn-action btn-danger" id="btn-cancel-cmd">Cancelar</button>
+                    <button class="btn-action" id="btn-save-cmd">Guardar Comando</button>
+                </div>
+            </div>
+
+            <!-- Tabla de comandos registrados -->
+            <table id="table-commands">
+                <thead>
+                    <tr>
+                        <th style="width:25%;">Comando</th>
+                        <th style="width:15%;">Tipo</th>
+                        <th style="width:10%;">Fase Req.</th>
+                        <th style="width:10%;">Sig. Fase</th>
+                        <th style="width:25%;">Previsualización</th>
+                        <th style="width:15%;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-commands">
+                    <!-- Dinámico -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 2: HISTORIAS Y EXPEDIENTES                 -->
+    <!-- ============================================== -->
+    <div id="tab-cases" class="tab-content">
+        <div class="card">
+            <h2>Gestor de Expedientes e Historias</h2>
+            <button class="btn-action" id="btn-new-case" style="margin-bottom:15px;">+ Crear Nuevo Expediente</button>
+
+            <!-- Formulario de Caso -->
+            <div id="case-form-card" style="display:none; background:#060f05; border:1px solid var(--term-green); padding:15px; margin-bottom:20px;">
+                <h3 id="case-form-title" style="margin-top:0; color:var(--term-green);">Registrar Expediente</h3>
+                <input type="hidden" id="edit-case-id">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Identificador Único (Slug, ej: caso-ted-1974):</label>
+                        <input type="text" id="case-slug" placeholder="caso-misterioso-01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Título del Caso:</label>
+                        <input type="text" id="case-title" placeholder="CASO LAGO SAMMAMISH - 1974" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cabecera del Sistema (Header):</label>
+                        <input type="text" id="case-header" value="SISTEMA DE ARCHIVOS CLASIFICADOS V.1.03">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mensaje de Conexión:</label>
+                        <input type="text" id="case-conn-msg" value="Conexión cifrada establecida.">
+                    </div>
+
+                    <div class="form-group full">
+                        <label>Pista / Mensaje Inicial para el usuario:</label>
+                        <input type="text" id="case-hint" value="Escriba 'ayuda' para continuar.">
+                    </div>
+
+                    <div class="form-group full">
+                        <label style="display:inline-flex; align-items:center; cursor:pointer;">
+                            <input type="checkbox" id="case-active" style="width:auto; margin-right:8px;" checked>
+                            <span>Activar este expediente como el caso principal del terminal</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+                    <button class="btn-action btn-danger" id="btn-cancel-case">Cancelar</button>
+                    <button class="btn-action" id="btn-save-case">Guardar Expediente</button>
+                </div>
+            </div>
+
+            <table id="table-cases">
+                <thead>
+                    <tr>
+                        <th>Slug</th>
+                        <th>Título</th>
+                        <th>Estado</th>
+                        <th>Fecha Creación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-cases">
+                    <!-- Dinámico -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 3: MEDIA (IMÁGENES & GOOGLE DOCS)          -->
+    <!-- ============================================== -->
+    <div id="tab-media" class="tab-content">
+        <div class="card">
+            <h2>Subida de Evidencias Fotográficas</h2>
+            <p style="font-size:13px; color:#7ca579;">
+                Las fotos que subas aquí quedan protegidas contra descargas en la terminal (clic derecho bloqueado, arrastre deshabilitado y capa transparente).
+            </p>
+
+            <div class="drop-area" id="drop-area">
+                <p>Arrastra una foto de evidencia aquí o haz clic para seleccionarla</p>
+                <input type="file" id="file-input" accept="image/*" style="display:none;">
+            </div>
+            <div id="upload-status" style="color:var(--term-green); font-size:14px; margin-top:10px;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Marco de Álbumes (Google Photos Picker API) y Documentos</h2>
+            <div style="line-height:1.6; font-size:14px;">
+                <p><b>🛡️ Solución al Bloqueo de iframes de Google:</b></p>
+                <p style="color:#ffb86c; font-size:13px;">
+                    Google bloquea la inserción directa en <code>&lt;iframe&gt;</code> mediante directivas <code>X-Frame-Options: SAMEORIGIN</code> y políticas CSP. Nuestra aplicación utiliza un <b>Marco de Álbum Forense</b> compatible con la <b>Google Photos Picker API</b> con protección integral contra descargas y visor a pantalla completa.
+                </p>
+
+                <p style="margin-top:12px;"><b>1. Configurar un Álbum de Evidencias (comando tipo Marco de Álbum):</b></p>
+                <ul>
+                    <li>Crea un comando con tipo <b>"Marco de Álbum (Google Photos Picker API & Anti-Descarga)"</b> (ej: <code>album</code> o <code>doc expediente_completo</code>).</li>
+                    <li>Ingresa las URLs de las fotografías una por línea (pueden ser rutas locales como <code>/ted.jpeg</code> o URLs de Google Photos Picker / CDN).</li>
+                    <li>Opcionalmente, los operadores pueden conectar su sesión de Google Photos en tiempo real desde el botón <code>📷 GOOGLE PHOTOS PICKER</code> dentro del álbum.</li>
+                </ul>
+
+                <p style="margin-top:12px;"><b>2. Protección Anti-Descarga y Pantalla Completa:</b></p>
+                <ul>
+                    <li>Las fotos cuentan con una capa invisible de bloqueo contra clics derechos y arrastre (drag-and-drop).</li>
+                    <li>Se inhabilitan atajos de teclado como <code>Ctrl+S</code>, <code>Ctrl+P</code> y <code>Ctrl+U</code>.</li>
+                    <li>Los operadores pueden pulsar <b>🔍 PANTALLA COMPLETA</b> o hacer clic sobre la imagen para abrir el visor inmersivo con navegación por flechas y marcas de agua forenses.</li>
+                </ul>
+
+                <p style="margin-top:12px;"><b>3. Para Fotos individuales:</b></p>
+                <ul>
+                    <li>Sube el archivo en la zona de arriba o colócalo en la carpeta <code>/public</code>.</li>
+                    <li>Configura un comando con tipo <b>"Imagen de Evidencia"</b> y pon su ruta (ej: <code>/ted.jpeg</code>).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 4: USUARIOS / OPERADORES                   -->
+    <!-- ============================================== -->
+    <div id="tab-users" class="tab-content">
+        <div class="card">
+            <h2>Operadores Autorizados (Control de Acceso a Expedientes)</h2>
+            <p style="font-size:13px; color:#7ca579;">
+                Puedes asignar a cada operador acceso exclusivo a uno o más expedientes específicos, o darle rol de <b>Admin Global</b>.
+            </p>
+
+            <div style="background:#060f05; border:1px solid var(--term-border); padding:15px; margin-bottom:20px;">
+                <h3 style="margin-top:0; color:var(--term-green);">Registrar Nuevo Operador</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre de Usuario (ej: detective_garcia):</label>
+                        <input type="text" id="new-user-name" placeholder="usuario">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña de Seguridad:</label>
+                        <input type="password" id="new-user-pwd" placeholder="••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label>Rol de Acceso:</label>
+                        <select id="new-user-role">
+                            <option value="operator">Operador (Solo expedientes asignados)</option>
+                            <option value="entrañable">Operador Entrañable (Perfil Especial con Configuración JSON)</option>
+                            <option value="admin">Administrador Global (Todos los expedientes)</option>
+                        </select>
+                    </div>
+                    <div class="form-group full" id="new-user-cases-group">
+                        <label>Expedientes a los que tendrá acceso este operador:</label>
+                        <div id="new-user-cases-list" style="max-height:140px; overflow-y:auto; border:1px solid var(--term-dim); padding:10px; background:#040903;">
+                            <!-- Checkboxes de casos -->
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-action" id="btn-save-user" style="margin-top:10px;">+ Agregar Operador</button>
+            </div>
+
+            <!-- Modal de Edición de Permisos de Operador -->
+            <div id="user-perm-card" style="display:none; background:#060f05; border:1px solid var(--term-green); padding:15px; margin-bottom:20px;">
+                <h3 id="user-perm-title" style="margin-top:0; color:var(--term-green);">Editar Expedientes de Operador</h3>
+                <input type="hidden" id="edit-perm-user-id">
+                <div class="form-group">
+                    <label>Rol:</label>
+                    <select id="edit-perm-role">
+                        <option value="operator">Operador (Sin acceso a admin - Restringido a sus expedientes)</option>
+                        <option value="entrañable">Operador Entrañable (Perfil Especial JSON - Sin acceso a admin)</option>
+                        <option value="admin">Administrador Global (Acceso total)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="edit-perm-cases-group">
+                    <label>Expedientes Autorizados:</label>
+                    <div id="edit-perm-cases-list" style="max-height:160px; overflow-y:auto; border:1px solid var(--term-dim); padding:10px; background:#040903;">
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+                    <button class="btn-action btn-danger" id="btn-cancel-perm">Cancelar</button>
+                    <button class="btn-action" id="btn-save-perm">Guardar Asignaciones</button>
+                </div>
+            </div>
+
+            <!-- Modal de Edición de Configuración JSON de Operador Especial (Rol Entrañable) -->
+            <div id="user-json-card" style="display:none; background:#0b0612; border:1px solid #bd93f9; padding:15px; margin-bottom:20px; box-shadow:0 0 15px rgba(189,147,249,0.2);">
+                <h3 id="user-json-title" style="margin-top:0; color:#bd93f9;">⚙️ Configuración JSON de Operador Especial (<span id="user-json-name"></span>)</h3>
+                <input type="hidden" id="edit-json-user-id">
+                <p style="font-size:13px; color:#c5a8e6; margin-bottom:12px;">
+                    Los operadores con rol <b>entrañable</b> poseen variables heurísticas de investigación y respuestas especiales personalizadas para los comandos. 
+                    <span class="badge" style="background:#4a154b; color:#ffb86c; border:1px solid #ffb86c; margin-left:6px;">PERFIL IRREPETIBLE</span>
+                </p>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:#ffb86c;">
+                        <input type="checkbox" id="edit-json-occupied" style="width:auto;">
+                        <b>Operador Ocupado (En servicio activo en la red forense)</b>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>Estructura JSON (Variables, Respuestas Especiales & Sabor):</label>
+                    <textarea id="edit-json-content" style="min-height:280px; font-family:'Courier New', monospace; font-size:13px; background:#050208; color:#f8f8f2; border:1px solid #6272a4;"></textarea>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+                    <button class="btn-action" id="btn-format-json" style="border-color:#6272a4; color:#8be9fd;">Formatear JSON</button>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-action btn-danger" id="btn-cancel-json">Cancelar</button>
+                        <button class="btn-action" id="btn-save-json" style="border-color:#bd93f9; color:#bd93f9;">Guardar Configuración JSON</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal de Cambio de Contraseña de Operador -->
+            <div id="user-pwd-card" style="display:none; background:#060f05; border:1px solid #72c2ff; padding:15px; margin-bottom:20px;">
+                <h3 id="user-pwd-title" style="margin-top:0; color:#72c2ff;">🔑 Gestionar Contraseña de Operador</h3>
+                <input type="hidden" id="change-pwd-user-id">
+                <p style="font-size:13px; color:#aaa;" id="change-pwd-user-info"></p>
+                <div class="form-group" style="max-width:320px;">
+                    <label>Nueva Contraseña:</label>
+                    <input type="password" id="input-new-operator-pwd" placeholder="Ingrese nueva contraseña">
+                </div>
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="btn-action btn-danger" id="btn-cancel-operator-pwd">Cancelar</button>
+                    <button class="btn-action" id="btn-confirm-operator-pwd" style="border-color:#72c2ff; color:#72c2ff;">Actualizar Contraseña</button>
+                </div>
+            </div>
+
+            <table id="table-users">
+                <thead>
+                    <tr>
+                        <th style="width:5%;">ID</th>
+                        <th style="width:15%;">Usuario</th>
+                        <th style="width:15%;">Rol</th>
+                        <th style="width:35%;">Expedientes con Acceso</th>
+                        <th style="width:15%;">Fecha de Alta</th>
+                        <th style="width:15%;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-users">
+                    <!-- Dinámico -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 5: BACKUP Y EXPORTACIÓN                    -->
+    <!-- ============================================== -->
+    <div id="tab-backup" class="tab-content">
+        <div class="card">
+            <h2>Copia de Seguridad y Migración</h2>
+            <p>Exporta toda tu configuración (expedientes, comandos, textos) a un archivo JSON o restaura un respaldo previo.</p>
+            
+            <div style="display:flex; gap:15px; margin-top:20px;">
+                <button class="btn-action" id="btn-export-backup">⬇ Descargar Respaldo JSON</button>
+                <label class="btn-action" style="display:inline-block; cursor:pointer;">
+                    ⬆ Restaurar desde JSON
+                    <input type="file" id="file-import" accept=".json" style="display:none;">
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Notificación -->
+    <div id="toast">Operación completada con éxito</div>
+
+    <script>
+        // Sesión
+        const token = sessionStorage.getItem('admin_token');
+        const userJson = sessionStorage.getItem('admin_user');
+        if (!token && !document.cookie.includes('session_token')) {
+            alert('Acceso restringido. Por favor autentíquese en la terminal con: login [usuario]');
+            window.location.href = '/';
+        }
+
+        if (userJson) {
+            try {
+                const u = JSON.parse(userJson);
+                if (u.role !== 'admin' && u.role !== 'superadmin') {
+                    alert('ACCESO DENEGADO: El rol de Operador (' + (u.role || 'no admin') + ') no tiene permisos de administrador.');
+                    window.location.href = '/';
+                }
+                document.getElementById('user-display').innerText = `Operador: ${u.username}`;
+            } catch (e) {}
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.borderColor = isError ? '#ff3333' : '#04d11f';
+            toast.style.color = isError ? '#ff3333' : '#04d11f';
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        // Logout
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            await fetch('/api/logout', { method: 'POST' });
+            sessionStorage.clear();
+            window.location.href = '/';
+        });
+
+        // Tabs
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // API Helpers
+        function authFetch(url, options = {}) {
+            options.headers = options.headers || {};
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+            return fetch(url, options);
+        }
+
+        // ==========================================
+        // SECCIÓN EXPEDIENTES (CASES)
+        // ==========================================
+        let casesList = [];
+
+        async function loadCases() {
+            try {
+                const res = await authFetch('/api/admin/cases');
+                if (res.status === 401) return window.location.href = '/';
+                casesList = await res.json();
+
+                // Actualizar select de comandos
+                const cmdSelect = document.getElementById('cmd-case-select');
+                cmdSelect.innerHTML = '';
+                casesList.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `${c.title} (${c.slug}) ${c.active ? '★ ACTIVO' : ''}`;
+                    if (c.active) opt.selected = true;
+                    cmdSelect.appendChild(opt);
+                });
+
+                // Actualizar tabla
+                const tbody = document.getElementById('tbody-cases');
+                tbody.innerHTML = '';
+                casesList.forEach(c => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><b>${c.slug}</b></td>
+                        <td>${c.title}</td>
+                        <td>${c.active ? '<span class="badge badge-active">ACTIVO</span>' : '<span class="badge badge-inactive">INACTIVO</span>'}</td>
+                        <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="nav-btn edit-case" data-id="${c.id}">Editar</button>
+                            <button class="nav-btn btn-danger del-case" data-id="${c.id}">Eliminar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Cargar comandos del caso seleccionado
+                if (cmdSelect.value) {
+                    loadCommands(cmdSelect.value);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        document.getElementById('cmd-case-select').addEventListener('change', (e) => {
+            loadCommands(e.target.value);
+        });
+
+        // Formulario de Caso
+        const caseFormCard = document.getElementById('case-form-card');
+        const btnNewCase = document.getElementById('btn-new-case');
+        const btnCancelCase = document.getElementById('btn-cancel-case');
+        const btnSaveCase = document.getElementById('btn-save-case');
+
+        btnNewCase.addEventListener('click', () => {
+            document.getElementById('edit-case-id').value = '';
+            document.getElementById('case-slug').value = '';
+            document.getElementById('case-title').value = '';
+            document.getElementById('case-header').value = 'SISTEMA DE ARCHIVOS CLASIFICADOS V.1.03';
+            document.getElementById('case-conn-msg').value = 'Conexión cifrada establecida.';
+            document.getElementById('case-hint').value = "Escriba 'ayuda' para continuar.";
+            document.getElementById('case-active').checked = true;
+            document.getElementById('case-form-title').innerText = 'Registrar Nuevo Expediente';
+            caseFormCard.style.display = 'block';
+        });
+
+        btnCancelCase.addEventListener('click', () => {
+            caseFormCard.style.display = 'none';
+        });
+
+        btnSaveCase.addEventListener('click', async () => {
+            const id = document.getElementById('edit-case-id').value;
+            const payload = {
+                slug: document.getElementById('case-slug').value.trim(),
+                title: document.getElementById('case-title').value.trim(),
+                system_header: document.getElementById('case-header').value,
+                connection_msg: document.getElementById('case-conn-msg').value,
+                initial_hint: document.getElementById('case-hint').value,
+                active: document.getElementById('case-active').checked ? 1 : 0
+            };
+
+            if (!payload.slug || !payload.title) {
+                return showToast('Complete slug y título', true);
+            }
+
+            const url = id ? `/api/admin/cases/${id}` : '/api/admin/cases';
+            const method = id ? 'PUT' : 'POST';
+
+            const res = await authFetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                showToast('Expediente guardado');
+                caseFormCard.style.display = 'none';
+                loadCases();
+            } else {
+                const data = await res.json();
+                showToast(data.error || 'Error al guardar caso', true);
+            }
+        });
+
+        document.getElementById('tbody-cases').addEventListener('click', async (e) => {
+            if (e.target.classList.contains('edit-case')) {
+                const id = e.target.dataset.id;
+                const c = casesList.find(x => x.id == id);
+                if (!c) return;
+                document.getElementById('edit-case-id').value = c.id;
+                document.getElementById('case-slug').value = c.slug;
+                document.getElementById('case-title').value = c.title;
+                document.getElementById('case-header').value = c.system_header;
+                document.getElementById('case-conn-msg').value = c.connection_msg;
+                document.getElementById('case-hint').value = c.initial_hint;
+                document.getElementById('case-active').checked = c.active === 1;
+                document.getElementById('case-form-title').innerText = 'Editar Expediente';
+                caseFormCard.style.display = 'block';
+            }
+
+            if (e.target.classList.contains('del-case')) {
+                const id = e.target.dataset.id;
+                if (!confirm('¿Eliminar este expediente y todos sus comandos asociados?')) return;
+                const res = await authFetch(`/api/admin/cases/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('Expediente eliminado');
+                    loadCases();
+                }
+            }
+        });
+
+        // ==========================================
+        // SECCIÓN COMANDOS
+        // ==========================================
+        let commandsList = [];
+
+        async function loadCommands(caseId) {
+            try {
+                const res = await authFetch(`/api/admin/commands?case_id=${caseId}`);
+                commandsList = await res.json();
+                const tbody = document.getElementById('tbody-commands');
+                tbody.innerHTML = '';
+
+                commandsList.forEach(cmd => {
+                    let preview = '';
+                    try {
+                        const parsed = JSON.parse(cmd.response_payload);
+                        if (cmd.response_type === 'text' || cmd.response_type === 'decrypt_text') {
+                            preview = parsed.text ? parsed.text.replace(/<[^>]+>/g, ' ').substring(0, 50) + '...' : '';
+                        } else if (cmd.response_type === 'image') {
+                            preview = `📷 [IMG: ${parsed.url}]`;
+                        } else if (cmd.response_type === 'doc_embed') {
+                            const count = Array.isArray(parsed.photos) ? ` (${parsed.photos.length} fotos)` : '';
+                            preview = `📁 [ÁLBUM: ${parsed.title || 'Evidencias'}${count}]`;
+                        }
+                    } catch {
+                        preview = cmd.response_payload.substring(0, 50);
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><b>${cmd.command_pattern}</b></td>
+                        <td><span class="badge badge-type">${cmd.response_type}</span></td>
+                        <td>${cmd.required_phase || 'Cualquiera'}</td>
+                        <td>${cmd.next_phase || '-'}</td>
+                        <td style="color:#8bbd88;">${preview}</td>
+                        <td>
+                            <button class="nav-btn edit-cmd" data-id="${cmd.id}">Editar</button>
+                            <button class="nav-btn btn-danger del-cmd" data-id="${cmd.id}">Borrar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Toggle campos según tipo de comando
+        const cmdTypeSelect = document.getElementById('cmd-type');
+        const groupText = document.getElementById('group-text-payload');
+        const groupImg = document.getElementById('group-image-payload');
+        const groupDoc = document.getElementById('group-doc-payload');
+
+        function updateCmdFormFields(type) {
+            groupText.style.display = (type === 'text' || type === 'decrypt_text') ? 'block' : 'none';
+            groupImg.style.display = (type === 'image') ? 'block' : 'none';
+            groupDoc.style.display = (type === 'doc_embed') ? 'block' : 'none';
+        }
+        cmdTypeSelect.addEventListener('change', (e) => updateCmdFormFields(e.target.value));
+
+        const cmdFormCard = document.getElementById('cmd-form-card');
+        const btnNewCmd = document.getElementById('btn-new-cmd');
+        const btnCancelCmd = document.getElementById('btn-cancel-cmd');
+        const btnSaveCmd = document.getElementById('btn-save-cmd');
+
+        btnNewCmd.addEventListener('click', () => {
+            document.getElementById('edit-cmd-id').value = '';
+            document.getElementById('cmd-pattern').value = '';
+            document.getElementById('cmd-type').value = 'text';
+            document.getElementById('cmd-required-phase').value = '0';
+            document.getElementById('cmd-next-phase').value = '0';
+            document.getElementById('cmd-payload-text').value = '';
+            document.getElementById('cmd-payload-alert').checked = false;
+            document.getElementById('cmd-payload-img-url').value = '';
+            document.getElementById('cmd-payload-img-caption').value = '';
+            document.getElementById('cmd-payload-img-delay').value = '2500';
+            document.getElementById('cmd-payload-doc-url').value = '';
+            document.getElementById('cmd-payload-doc-title').value = '';
+            document.getElementById('cmd-payload-doc-caption').value = '';
+            document.getElementById('cmd-payload-doc-photos').value = '';
+            const statusEl = document.getElementById('sync-album-status');
+            if (statusEl) {
+                statusEl.innerHTML = '💡 <b>Automático:</b> Basta con colocar la URL compartida de Google Fotos aquí. El sistema extraerá y blindará todas las fotos para que los operadores las vean a pantalla completa sin poder descargarlas.';
+                statusEl.style.color = '#7ca579';
+            }
+            updateCmdFormFields('text');
+            document.getElementById('cmd-form-title').innerText = 'Crear Nuevo Comando';
+            cmdFormCard.style.display = 'block';
+        });
+
+        // Botón para sincronizar y probar extracción de álbum en tiempo real
+        const btnSyncAlbum = document.getElementById('btn-sync-album');
+        if (btnSyncAlbum) {
+            btnSyncAlbum.addEventListener('click', async () => {
+                const albumUrl = document.getElementById('cmd-payload-doc-url').value.trim();
+                if (!albumUrl) return showToast('Ingrese la URL del álbum de Google Fotos', true);
+
+                const statusEl = document.getElementById('sync-album-status');
+                statusEl.innerHTML = '⏳ Conectando y extrayendo fotografías de Google Fotos...';
+                statusEl.style.color = '#8be9fd';
+
+                try {
+                    const res = await authFetch('/api/admin/resolve-album', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ albumUrl })
+                    });
+
+                    const data = await res.json();
+                    if (res.ok) {
+                        statusEl.innerHTML = `✅ <b>¡Éxito!</b> Se sincronizaron <b>${data.count} fotografías</b> del álbum <i>"${data.title || 'Álbum'}"</i>.`;
+                        statusEl.style.color = '#50fa7b';
+
+                        if (!document.getElementById('cmd-payload-doc-title').value.trim() && data.title) {
+                            document.getElementById('cmd-payload-doc-title').value = data.title;
+                        }
+                        if (!document.getElementById('cmd-payload-doc-caption').value.trim() && data.description) {
+                            document.getElementById('cmd-payload-doc-caption').value = data.description;
+                        }
+                        if (Array.isArray(data.photos)) {
+                            document.getElementById('cmd-payload-doc-photos').value = data.photos.map(p => p.url).join('\n');
+                        }
+                        showToast(`¡${data.count} fotos sincronizadas del álbum!`);
+                    } else {
+                        statusEl.innerHTML = `❌ Error: ${data.error || 'No se pudieron extraer fotos.'}`;
+                        statusEl.style.color = '#ff5555';
+                        showToast(data.error || 'Error al sincronizar álbum', true);
+                    }
+                } catch (err) {
+                    statusEl.innerHTML = `❌ Error de conexión: ${err.message}`;
+                    statusEl.style.color = '#ff5555';
+                }
+            });
+        }
+
+        btnCancelCmd.addEventListener('click', () => {
+            cmdFormCard.style.display = 'none';
+        });
+
+        btnSaveCmd.addEventListener('click', async () => {
+            const id = document.getElementById('edit-cmd-id').value;
+            const caseId = document.getElementById('cmd-case-select').value;
+            const pattern = document.getElementById('cmd-pattern').value.trim();
+            const type = document.getElementById('cmd-type').value;
+            const reqPhase = parseInt(document.getElementById('cmd-required-phase').value, 10) || 0;
+            const nextPhase = parseInt(document.getElementById('cmd-next-phase').value, 10) || 0;
+
+            if (!pattern) return showToast('Especifique el comando', true);
+
+            let payload = {};
+            if (type === 'text' || type === 'decrypt_text') {
+                payload = {
+                    text: document.getElementById('cmd-payload-text').value,
+                    alert: document.getElementById('cmd-payload-alert').checked,
+                    delay: type === 'decrypt_text' ? 1800 : 0
+                };
+            } else if (type === 'image') {
+                payload = {
+                    url: document.getElementById('cmd-payload-img-url').value.trim(),
+                    caption: document.getElementById('cmd-payload-img-caption').value.trim(),
+                    delay: parseInt(document.getElementById('cmd-payload-img-delay').value, 10) || 2000
+                };
+            } else if (type === 'doc_embed') {
+                const photosRaw = document.getElementById('cmd-payload-doc-photos').value.trim();
+                const photoLines = photosRaw ? photosRaw.split('\n').map(l => l.trim()).filter(l => l.length > 0) : [];
+                const photos = photoLines.map((url, idx) => ({
+                    url,
+                    title: `Evidencia #${idx + 1}`,
+                    caption: 'Fotografía registrada bajo protocolo forense protegido.'
+                }));
+
+                payload = {
+                    embedUrl: document.getElementById('cmd-payload-doc-url').value.trim(),
+                    title: document.getElementById('cmd-payload-doc-title').value.trim() || 'Álbum de Evidencias Clasificadas',
+                    caption: document.getElementById('cmd-payload-doc-caption').value.trim(),
+                    photos: photos.length > 0 ? photos : undefined
+                };
+            }
+
+            const bodyData = {
+                case_id: caseId,
+                command_pattern: pattern,
+                response_type: type,
+                response_payload: payload,
+                required_phase: reqPhase,
+                next_phase: nextPhase
+            };
+
+            const url = id ? `/api/admin/commands/${id}` : '/api/admin/commands';
+            const method = id ? 'PUT' : 'POST';
+
+            const res = await authFetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyData)
+            });
+
+            if (res.ok) {
+                showToast('Comando guardado correctamente');
+                cmdFormCard.style.display = 'none';
+                loadCommands(caseId);
+            } else {
+                const data = await res.json();
+                showToast(data.error || 'Error al guardar comando', true);
+            }
+        });
+
+        document.getElementById('tbody-commands').addEventListener('click', async (e) => {
+            const caseId = document.getElementById('cmd-case-select').value;
+
+            if (e.target.classList.contains('edit-cmd')) {
+                const id = e.target.dataset.id;
+                const cmd = commandsList.find(x => x.id == id);
+                if (!cmd) return;
+
+                document.getElementById('edit-cmd-id').value = cmd.id;
+                document.getElementById('cmd-pattern').value = cmd.command_pattern;
+                document.getElementById('cmd-type').value = cmd.response_type;
+                document.getElementById('cmd-required-phase').value = cmd.required_phase;
+                document.getElementById('cmd-next-phase').value = cmd.next_phase;
+
+                let payload = {};
+                try { payload = JSON.parse(cmd.response_payload); } catch {}
+
+                if (cmd.response_type === 'text' || cmd.response_type === 'decrypt_text') {
+                    document.getElementById('cmd-payload-text').value = payload.text || '';
+                    document.getElementById('cmd-payload-alert').checked = !!payload.alert;
+                } else if (cmd.response_type === 'image') {
+                    document.getElementById('cmd-payload-img-url').value = payload.url || '';
+                    document.getElementById('cmd-payload-img-caption').value = payload.caption || '';
+                    document.getElementById('cmd-payload-img-delay').value = payload.delay || 2500;
+                } else if (cmd.response_type === 'doc_embed') {
+                    document.getElementById('cmd-payload-doc-url').value = payload.embedUrl || '';
+                    document.getElementById('cmd-payload-doc-title').value = payload.title || '';
+                    document.getElementById('cmd-payload-doc-caption').value = payload.caption || '';
+                    const statusEl = document.getElementById('sync-album-status');
+                    if (Array.isArray(payload.photos) && payload.photos.length > 0) {
+                        document.getElementById('cmd-payload-doc-photos').value = payload.photos.map(p => (typeof p === 'string' ? p : p.url)).join('\n');
+                        if (statusEl) {
+                            statusEl.innerHTML = `📁 Álbum sincronizado con <b>${payload.photos.length} fotografías</b> listas para visualización de operadores.`;
+                            statusEl.style.color = '#50fa7b';
+                        }
+                    } else {
+                        document.getElementById('cmd-payload-doc-photos').value = '';
+                        if (statusEl) {
+                            statusEl.innerHTML = '💡 <b>Automático:</b> Basta con colocar la URL compartida de Google Fotos aquí.';
+                            statusEl.style.color = '#7ca579';
+                        }
+                    }
+                }
+
+                updateCmdFormFields(cmd.response_type);
+                document.getElementById('cmd-form-title').innerText = 'Editar Comando';
+                cmdFormCard.style.display = 'block';
+            }
+
+            if (e.target.classList.contains('del-cmd')) {
+                const id = e.target.dataset.id;
+                if (!confirm('¿Eliminar este comando?')) return;
+                const res = await authFetch(`/api/admin/commands/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('Comando eliminado');
+                    loadCommands(caseId);
+                }
+            }
+        });
+
+        // ==========================================
+        // IMPORTAR Y EXPORTAR COMANDOS JSON
+        // ==========================================
+        let pendingImportCommands = [];
+        const fileImportCmds = document.getElementById('file-import-cmds');
+        const modalImportCmds = document.getElementById('modal-import-cmds');
+        const importCmdsInfo = document.getElementById('import-cmds-info');
+        const btnCancelImportCmds = document.getElementById('btn-cancel-import-cmds');
+        const btnConfirmImportCmds = document.getElementById('btn-confirm-import-cmds');
+        const chkReplaceCmds = document.getElementById('chk-replace-cmds');
+        const btnExportCmds = document.getElementById('btn-export-cmds');
+
+        fileImportCmds.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const parsed = JSON.parse(reader.result);
+                    // Soportar array directo de comandos o formato con { commands: [...] }
+                    pendingImportCommands = Array.isArray(parsed) ? parsed : (parsed.commands || []);
+
+                    if (!Array.isArray(pendingImportCommands) || pendingImportCommands.length === 0) {
+                        return showToast('El archivo JSON no contiene comandos válidos', true);
+                    }
+
+                    const caseSelect = document.getElementById('cmd-case-select');
+                    const caseText = caseSelect.options[caseSelect.selectedIndex]?.text || 'expediente actual';
+
+                    importCmdsInfo.innerHTML = `Archivo: <b>${file.name}</b> (${pendingImportCommands.length} comandos detectados). Se importarán al expediente: <span style="color:#04d11f;">${caseText}</span>`;
+                    modalImportCmds.style.display = 'block';
+                } catch (err) {
+                    showToast('Error: archivo JSON inválido', true);
+                }
+            };
+            reader.readAsText(file);
+            fileImportCmds.value = '';
+        });
+
+        btnCancelImportCmds.addEventListener('click', () => {
+            modalImportCmds.style.display = 'none';
+            pendingImportCommands = [];
+        });
+
+        btnConfirmImportCmds.addEventListener('click', async () => {
+            const caseId = document.getElementById('cmd-case-select').value;
+            if (!caseId) return showToast('Seleccione un expediente primero', true);
+
+            const replace = chkReplaceCmds.checked;
+
+            try {
+                const res = await authFetch('/api/admin/import-commands', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        case_id: caseId,
+                        commands: pendingImportCommands,
+                        replace_existing: replace
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message || 'Comandos importados correctamente');
+                    modalImportCmds.style.display = 'none';
+                    pendingImportCommands = [];
+                    loadCommands(caseId);
+                } else {
+                    showToast(data.error || 'Error al importar comandos', true);
+                }
+            } catch (err) {
+                showToast('Error de conexión al importar', true);
+            }
+        });
+
+        btnExportCmds.addEventListener('click', async () => {
+            const caseId = document.getElementById('cmd-case-select').value;
+            if (!caseId) return showToast('Seleccione un expediente', true);
+
+            try {
+                const res = await authFetch(`/api/admin/export-commands?case_id=${caseId}`);
+                if (!res.ok) return showToast('Error al exportar comandos', true);
+                const data = await res.json();
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `comandos_${data.case_slug || 'expediente'}_${Date.now()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('Lista de comandos exportada en JSON');
+            } catch (err) {
+                showToast('Error al exportar comandos', true);
+            }
+        });
+
+        // ==========================================
+        // SUBIDA DE IMÁGENES
+        // ==========================================
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        const uploadStatus = document.getElementById('upload-status');
+
+        dropArea.addEventListener('click', () => fileInput.click());
+        dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.style.borderColor = '#04d11f'; });
+        dropArea.addEventListener('dragleave', () => dropArea.style.borderColor = '');
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '';
+            if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) uploadFile(fileInput.files[0]);
+        });
+
+        function uploadFile(file) {
+            uploadStatus.innerText = 'Subiendo imagen clasificada...';
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const base64Data = reader.result;
+                const res = await authFetch('/api/admin/upload-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: file.name, base64Data })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    uploadStatus.innerHTML = `✓ Imagen subida con éxito: <code style="color:#04d11f;">${data.url}</code> (Copie esta URL en el comando de tipo Imagen)`;
+                    showToast('Imagen lista para usar');
+                } else {
+                    uploadStatus.innerText = 'Error al subir la imagen.';
+                    showToast('Fallo en la subida', true);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ==========================================
+        // SECCIÓN USUARIOS
+        // ==========================================
+        let usersList = [];
+
+        function renderCaseCheckboxes(containerId, selectedIds = []) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            if (casesList.length === 0) {
+                container.innerHTML = '<span style="color:#777;">No hay expedientes creados</span>';
+                return;
+            }
+            casesList.forEach(c => {
+                const label = document.createElement('label');
+                label.style.display = 'block';
+                label.style.marginBottom = '6px';
+                label.style.cursor = 'pointer';
+                const isChecked = selectedIds.includes(c.id);
+                label.innerHTML = `
+                    <input type="checkbox" value="${c.id}" ${isChecked ? 'checked' : ''} style="width:auto; margin-right:8px;">
+                    <span><b>${c.title}</b> <small style="color:#669966;">(${c.slug})</small></span>
+                `;
+                container.appendChild(label);
+            });
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await authFetch('/api/admin/users');
+                usersList = await res.json();
+                const tbody = document.getElementById('tbody-users');
+                tbody.innerHTML = '';
+
+                // Render checkboxes en formulario de nuevo usuario
+                renderCaseCheckboxes('new-user-cases-list');
+
+                usersList.forEach(u => {
+                    let caseNames = '';
+                    if (u.role === 'admin' || u.role === 'superadmin') {
+                        caseNames = '<span style="color:#04d11f; font-weight:bold;">★ TODOS (Acceso Global)</span>';
+                    } else if (u.assigned_cases && u.assigned_cases.length > 0) {
+                        const matched = casesList.filter(c => u.assigned_cases.includes(c.id));
+                        caseNames = matched.map(c => `<span class="badge badge-type" style="margin-right:4px;">${c.title}</span>`).join(' ');
+                    } else {
+                        caseNames = '<span style="color:#888;">(Sin expedientes asignados)</span>';
+                    }
+
+                    let roleBadge = '';
+                    if (u.role === 'admin' || u.role === 'superadmin') {
+                        roleBadge = '<span class="badge badge-active">admin</span>';
+                    } else if (u.role === 'entrañable') {
+                        const occ = u.is_occupied ? '<span style="color:#ffb86c; font-weight:bold;">[OCUPADO - IRREPETIBLE]</span>' : '<span style="color:#50fa7b;">[DISPONIBLE]</span>';
+                        roleBadge = `<span class="badge" style="background:#2d133b; color:#e2b6ff; border:1px solid #bd93f9; font-size:12px;">★ ENTRAÑABLE ${occ}</span>`;
+                    } else {
+                        roleBadge = '<span class="badge badge-type">operator</span>';
+                    }
+
+                    const jsonBtn = (u.role === 'entrañable' || u.config_json)
+                        ? `<button class="nav-btn edit-user-json" data-id="${u.id}" style="color:#bd93f9; border-color:#bd93f9;">⚙️ Config JSON</button>`
+                        : '';
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${u.id}</td>
+                        <td><b>${u.username}</b></td>
+                        <td>${roleBadge}</td>
+                        <td>${caseNames}</td>
+                        <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="nav-btn edit-user-pwd" data-id="${u.id}" data-username="${u.username}" style="color:#72c2ff; border-color:#2e6b9c;">🔑 Clave</button>
+                            <button class="nav-btn edit-user-perm" data-id="${u.id}">Asignar Casos</button>
+                            ${jsonBtn}
+                            ${u.username !== 'admin' ? `<button class="nav-btn btn-danger del-user" data-id="${u.id}" data-role="${u.role}">Eliminar</button>` : ''}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        document.getElementById('btn-save-user').addEventListener('click', async () => {
+            const username = document.getElementById('new-user-name').value.trim();
+            const password = document.getElementById('new-user-pwd').value;
+            const role = document.getElementById('new-user-role').value;
+            if (!username || !password) return showToast('Complete usuario y clave', true);
+
+            const checkedBoxes = document.querySelectorAll('#new-user-cases-list input[type="checkbox"]:checked');
+            const assigned_cases = Array.from(checkedBoxes).map(cb => parseInt(cb.value, 10));
+
+            const res = await authFetch('/api/admin/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, role, assigned_cases })
+            });
+
+            if (res.ok) {
+                showToast(`Operador '${username}' autorizado con sus expedientes`);
+                document.getElementById('new-user-name').value = '';
+                document.getElementById('new-user-pwd').value = '';
+                loadUsers();
+            } else {
+                const data = await res.json();
+                showToast(data.error || 'Error al crear usuario', true);
+            }
+        });
+
+        // Edición de asignaciones
+        const userPermCard = document.getElementById('user-perm-card');
+        const btnCancelPerm = document.getElementById('btn-cancel-perm');
+        const btnSavePerm = document.getElementById('btn-save-perm');
+
+        btnCancelPerm.addEventListener('click', () => {
+            userPermCard.style.display = 'none';
+        });
+
+        btnSavePerm.addEventListener('click', async () => {
+            const userId = document.getElementById('edit-perm-user-id').value;
+            const role = document.getElementById('edit-perm-role').value;
+            const checkedBoxes = document.querySelectorAll('#edit-perm-cases-list input[type="checkbox"]:checked');
+            const assigned_cases = Array.from(checkedBoxes).map(cb => parseInt(cb.value, 10));
+
+            const res = await authFetch(`/api/admin/users/${userId}/cases`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role, assigned_cases })
+            });
+
+            if (res.ok) {
+                showToast('Expedientes asignados actualizados');
+                userPermCard.style.display = 'none';
+                loadUsers();
+            } else {
+                showToast('Error al actualizar asignaciones', true);
+            }
+        });
+
+        // Control de Configuración JSON de Operador Entrañable
+        const userJsonCard = document.getElementById('user-json-card');
+        const editJsonUserId = document.getElementById('edit-json-user-id');
+        const editJsonName = document.getElementById('user-json-name');
+        const editJsonOccupied = document.getElementById('edit-json-occupied');
+        const editJsonContent = document.getElementById('edit-json-content');
+        const btnFormatJson = document.getElementById('btn-format-json');
+        const btnCancelJson = document.getElementById('btn-cancel-json');
+        const btnSaveJson = document.getElementById('btn-save-json');
+
+        btnCancelJson.addEventListener('click', () => {
+            userJsonCard.style.display = 'none';
+        });
+
+        btnFormatJson.addEventListener('click', () => {
+            try {
+                const parsed = JSON.parse(editJsonContent.value);
+                editJsonContent.value = JSON.stringify(parsed, null, 2);
+                showToast('JSON formateado correctamente');
+            } catch (err) {
+                showToast('Error de sintaxis en JSON: ' + err.message, true);
+            }
+        });
+
+        btnSaveJson.addEventListener('click', async () => {
+            const userId = editJsonUserId.value;
+            const content = editJsonContent.value.trim();
+            const isOccupied = editJsonOccupied.checked;
+
+            try {
+                JSON.parse(content);
+            } catch (err) {
+                return showToast('Sintaxis JSON no válida: ' + err.message, true);
+            }
+
+            try {
+                const res = await authFetch(`/api/admin/users/${userId}/config`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config_json: content, is_occupied: isOccupied ? 1 : 0 })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message || 'Configuración JSON guardada');
+                    userJsonCard.style.display = 'none';
+                    loadUsers();
+                } else {
+                    showToast(data.error || 'Error al guardar configuración', true);
+                }
+            } catch (err) {
+                showToast('Error al conectar con el servidor', true);
+            }
+        });
+
+        // Control de Cambio de Contraseña de Operador
+        const userPwdCard = document.getElementById('user-pwd-card');
+        const inputNewOperatorPwd = document.getElementById('input-new-operator-pwd');
+        const changePwdUserInfo = document.getElementById('change-pwd-user-info');
+        const editChangePwdUserId = document.getElementById('change-pwd-user-id');
+        const btnCancelOperatorPwd = document.getElementById('btn-cancel-operator-pwd');
+        const btnConfirmOperatorPwd = document.getElementById('btn-confirm-operator-pwd');
+
+        btnCancelOperatorPwd.addEventListener('click', () => {
+            userPwdCard.style.display = 'none';
+            inputNewOperatorPwd.value = '';
+        });
+
+        btnConfirmOperatorPwd.addEventListener('click', async () => {
+            const userId = editChangePwdUserId.value;
+            const newPassword = inputNewOperatorPwd.value;
+            if (!newPassword || !newPassword.trim()) {
+                return showToast('Ingrese la nueva contraseña', true);
+            }
+
+            try {
+                const res = await authFetch(`/api/admin/users/${userId}/password`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: newPassword.trim() })
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    const data = await res.json().catch(() => ({}));
+                    return showToast(data.error || 'Sesión no autorizada o expirada. Vuelva a iniciar sesión.', true);
+                }
+
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message || 'Contraseña actualizada correctamente');
+                    userPwdCard.style.display = 'none';
+                    inputNewOperatorPwd.value = '';
+                } else {
+                    showToast(data.error || 'Error al actualizar contraseña', true);
+                }
+            } catch (err) {
+                console.error('Error al cambiar contraseña:', err);
+                showToast('Error de conexión con el servidor (verifique que node server.js esté ejecutándose)', true);
+            }
+        });
+
+        document.getElementById('tbody-users').addEventListener('click', async (e) => {
+            if (e.target.classList.contains('edit-user-pwd')) {
+                const id = e.target.dataset.id;
+                const username = e.target.dataset.username;
+                editChangePwdUserId.value = id;
+                changePwdUserInfo.innerHTML = `Asignando nueva clave para el operador: <b style="color:var(--term-green);">${username}</b>. Entrégale estas credenciales para que acceda con <code>login ${username}</code>.`;
+                inputNewOperatorPwd.value = '';
+                userPwdCard.style.display = 'block';
+                inputNewOperatorPwd.focus();
+            }
+
+            if (e.target.classList.contains('edit-user-perm')) {
+                const id = e.target.dataset.id;
+                const u = usersList.find(x => x.id == id);
+                if (!u) return;
+
+                document.getElementById('edit-perm-user-id').value = u.id;
+                document.getElementById('user-perm-title').innerText = `Asignar Expedientes al Operador: ${u.username}`;
+                document.getElementById('edit-perm-role').value = u.role;
+                renderCaseCheckboxes('edit-perm-cases-list', u.assigned_cases || []);
+                userPermCard.style.display = 'block';
+            }
+
+            if (e.target.classList.contains('edit-user-json')) {
+                const id = e.target.dataset.id;
+                const u = usersList.find(x => x.id == id);
+                if (!u) return;
+
+                editJsonUserId.value = u.id;
+                editJsonName.innerText = u.username;
+                editJsonOccupied.checked = u.is_occupied ? true : false;
+                
+                let formatted = '';
+                try {
+                    const parsed = typeof u.config_json === 'string' ? JSON.parse(u.config_json) : u.config_json;
+                    formatted = JSON.stringify(parsed || {}, null, 2);
+                } catch (err) {
+                    formatted = u.config_json || '{}';
+                }
+                editJsonContent.value = formatted;
+                userJsonCard.style.display = 'block';
+                userJsonCard.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            if (e.target.classList.contains('del-user')) {
+                const id = e.target.dataset.id;
+                const role = e.target.dataset.role;
+                if (role === 'entrañable') {
+                    if (!confirm('ATENCIÓN: Este es un perfil especial entrañable e irrepetible. ¿Está seguro de eliminarlo?')) return;
+                } else {
+                    if (!confirm('¿Desea revocar el acceso a este operador?')) return;
+                }
+                const res = await authFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('Operador eliminado');
+                    loadUsers();
+                } else {
+                    const d = await res.json();
+                    showToast(d.error || 'Error al eliminar', true);
+                }
+            }
+        });
+                } else {
+                    const d = await res.json();
+                    showToast(d.error || 'Error al eliminar', true);
+                }
+            }
+        });
+
+        // ==========================================
+        // BACKUP Y RESTORE
+        // ==========================================
+        document.getElementById('btn-export-backup').addEventListener('click', async () => {
+            const res = await authFetch('/api/admin/export');
+            const data = await res.json();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_forense_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Respaldo descargado');
+        });
+
+        document.getElementById('file-import').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async () => {
+                try {
+                    const json = JSON.parse(reader.result);
+                    const res = await authFetch('/api/admin/import', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(json)
+                    });
+                    if (res.ok) {
+                        showToast('Base de datos restaurada');
+                        loadCases();
+                    } else {
+                        showToast('Error al importar archivo', true);
+                    }
+                } catch {
+                    showToast('Archivo JSON no válido', true);
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // Inicializar
+        loadCases();
+        loadUsers();
+    </script>
+</body>
+
+</html>

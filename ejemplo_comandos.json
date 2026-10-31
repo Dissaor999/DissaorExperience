@@ -1,0 +1,44 @@
+[
+  {
+    "command": "investigar sospechoso",
+    "type": "decrypt_text",
+    "response": {
+      "text": "Sujeto masculino, estatura aproximada 1.80m. Frecuentaba librerías universitarias y parques los fines de semana. Manejaba un Volkswagen Beetle color marrón claro.",
+      "delay": 2000
+    },
+    "phase": 0,
+    "next_phase": 0
+  },
+  {
+    "command": "abrir mapa_forense.png",
+    "type": "image",
+    "response": {
+      "url": "/ted.jpeg",
+      "caption": "Croquis y registro pericial del perímetro este",
+      "delay": 1500
+    },
+    "phase": 0,
+    "next_phase": 0
+  },
+  {
+    "command": "doc autopsia_completa",
+    "type": "doc_embed",
+    "response": {
+      "embedUrl": "https://docs.google.com/document/d/e/2PACX-1vR6z-Fk2sJz2pD5k/pub?embedded=true",
+      "title": "Protocolo de Necropsia 74-B",
+      "caption": "Documento pericial clasificado, transcrito desde los archivos del forense."
+    },
+    "phase": 0,
+    "next_phase": 0
+  },
+  {
+    "command": "activar alarma",
+    "type": "text",
+    "response": {
+      "text": "ALERTA ROJA: INTRUSIÓN DETECTADA EN EL SECTOR 4. Cierren todas las salidas de inmediato.",
+      "alert": true
+    },
+    "phase": 0,
+    "next_phase": 2
+  }
+]

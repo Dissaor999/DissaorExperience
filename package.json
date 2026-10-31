@@ -1,0 +1,12 @@
+{
+  "name": "sistema-expedientes",
+  "version": "1.0.0",
+  "description": "Sistema de archivos clasificados, terminal interactiva y panel de administración",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "Dissaor",
+  "license": "ISC"
+}
